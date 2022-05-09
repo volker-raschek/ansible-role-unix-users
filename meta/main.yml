@@ -1,0 +1,23 @@
+galaxy_info:
+  role_name: unix_users
+  author: Markus Pesch
+  description: Role to create and configure unix users and groups
+  company: Cryptic Systems
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+  - name: ArchLinux
+    versions:
+    - all
+  - name: Ubuntu
+    versions:
+    - all
+  - name: Fedora
+    versions:
+    - "35"
+
+  galaxy_tags:
+  - unix_users
+  - unix_groups
+
+dependencies: []

@@ -1,0 +1,7 @@
+---
+
+- name: Remove unix user {{ unix_user.key }}
+  group:
+    name: "{{ unix_user.value.name }}"
+    state: absent
+    remove: yes

@@ -1,0 +1,26 @@
+---
+
+# unix_groups:
+#   kah:
+#     gid: 568
+#     state: present
+#   markus: {}
+#   movies:
+#     state: absent
+
+# unix_users:
+#   markus:
+#     name: "Markus Pesch"
+#     ssh_keys:
+#       public:
+#       - markus@markus-pc.pub
+#       - markus@markus-nb.pub
+#     shell: /bin/bash
+#     group: markus
+#     groups:
+#     - movies
+#     - music
+#     - series
+#     password: ""
+#     email: markus.pesch@cryptic.systems
+#     state: present

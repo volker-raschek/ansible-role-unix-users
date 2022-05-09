@@ -1,0 +1,7 @@
+#jinja2: lstrip_blocks: True
+#
+# {{ ansible_managed }}
+#
+{% for key in unix_user.value.ssh_keys.public %}
+{{ lookup('file', 'ssh/pubkeys/' + key) }}
+{% endfor %}

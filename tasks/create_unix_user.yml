@@ -1,0 +1,95 @@
+---
+
+- name: Define home directory for user {{ unix_user.key }}
+  set_fact:
+     user_user_home: "{{ unix_user.value.home | default('/home/' + unix_user.key) }}"
+
+- name: Create unix user {{ unix_user.key }} without additional groups and uid
+  user:
+    name: "{{ unix_user.key }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    comment: "{{ unix_user.value.name }}"
+    create_home: "{{ unix_user.value.create_home | default(true) }}"
+    home: "{{ user_user_home }}"
+    shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
+    password: "{{ unix_user.value.password | default('') | password_hash('sha512') }}"
+    state: present
+  when: "unix_user.value.groups is not defined and unix_user.value.uid is not defined"
+
+- name: Create unix user {{ unix_user.key }} without additional groups and with uid
+  user:
+    name: "{{ unix_user.key }}"
+    uid: "{{ unix_user.value.uid }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    comment: "{{ unix_user.value.name }}"
+    create_home: "{{ unix_user.value.create_home | default(true) }}"
+    home: "{{ user_user_home }}"
+    shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
+    password: "{{ unix_user.value.password | default('') | password_hash('sha512') }}"
+    state: present
+  when: "unix_user.value.groups is not defined and unix_user.value.uid is defined"
+
+- name: Create unix user {{ unix_user.key }} with additional groups and uid
+  user:
+    name: "{{ unix_user.key }}"
+    uid: "{{ unix_user.value.uid }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    groups: "{{ unix_user.value.groups | join(',') }}"
+    comment: "{{ unix_user.value.name }}"
+    create_home: "{{ unix_user.value.create_home | default(true) }}"
+    home: "{{ user_user_home }}"
+    shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
+    password: "{{ unix_user.value.password | default('') | password_hash('sha512') }}"
+    state: present
+  when: "unix_user.value.groups is defined and unix_user.value.uid is defined"
+
+- name: Create unix user {{ unix_user.key }} with additional groups and without uid
+  user:
+    name: "{{ unix_user.key }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    groups: "{{ unix_user.value.groups | join(',') }}"
+    comment: "{{ unix_user.value.name }}"
+    create_home: "{{ unix_user.value.create_home | default(true) }}"
+    home: "{{ user_user_home }}"
+    shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
+    password: "{{ unix_user.value.password | default('') | password_hash('sha512') }}"
+    state: present
+  when: "unix_user.value.groups is defined and unix_user.value.uid is not defined"
+
+- name: Create .ssh directory for user {{ unix_user.key }}
+  file:
+    path: "{{ user_user_home }}/.ssh"
+    owner: "{{ unix_user.key }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    mode: 0700
+    state: directory
+
+- name: Create authorized_keys file for user {{ unix_user.key }}
+  template:
+    src: authorized_keys.j2
+    dest: "{{ user_user_home }}/.ssh/authorized_keys"
+    owner: "{{ unix_user.key }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    mode: 0600
+  when: unix_user.value.ssh_keys is defined and unix_user.value.ssh_keys.public | length > 0
+
+- name: Remove authorized_keys file for user {{ unix_user.key }}
+  file:
+    path: "{{ user_user_home }}/.ssh/authorized_keys"
+    state: absent
+  when: unix_user.value.ssh_keys.public is not defined or unix_user.value.ssh_keys.public | length <= 0
+
+- name: Create .forward file to forward emails for user {{ unix_user.key }}
+  template:
+    src: forward.j2
+    dest: "{{ user_user_home }}/.forward"
+    owner: "{{ unix_user.key }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    mode: 0644
+  when: unix_user.value.email is defined
+
+- name: Remove .forward file to forward emails for user {{ unix_user.key }}
+  file:
+    path: "{{ user_user_home }}/.forward"
+    state: absent
+  when: unix_user.value.email is not defined
