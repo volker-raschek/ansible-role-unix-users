@@ -15,8 +15,8 @@
   with_dict: "{{ unix_users }}"
   loop_control:
     loop_var: unix_user
-  when: unix_groups is defined and
-        unix_groups | length > 0 and
+  when: unix_users is defined and
+        unix_users | length > 0 and
         unix_user.value.state is defined and
         unix_user.value.state == 'absent'
 
@@ -37,8 +37,8 @@
   with_dict: "{{ unix_users }}"
   loop_control:
     loop_var: unix_user
-  when: unix_groups is defined and
-        unix_groups | length > 0 and
+  when: unix_users is defined and
+        unix_users | length > 0 and
         (
           (unix_user.value.state is defined and unix_user.value.state == 'present') or
           unix_user.value.state is not defined
