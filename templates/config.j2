@@ -1,0 +1,14 @@
+#jinja2: lstrip_blocks: True
+#
+# {{ ansible_managed }}
+#
+
+{% for config in unix_user.value.ssh.config %}
+{% for property, value in config.items() %}
+{% if property == "Host" %}
+{{ property }} {{ value }}
+{% else %}
+  {{ property }} = {{ value }}
+{% endif %}
+{% endfor %}
+{% endfor %}

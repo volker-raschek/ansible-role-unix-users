@@ -2,6 +2,6 @@
 #
 # {{ ansible_managed }}
 #
-{% for key in unix_user.value.ssh_keys.public %}
-{{ lookup('file', 'ssh/pubkeys/' + key) }}
+{% for key in unix_user.value.ssh.authorized_keys %}
+{{ lookup('file', 'ssh/authorized_keys/' + key) }}
 {% endfor %}

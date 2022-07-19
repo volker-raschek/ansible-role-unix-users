@@ -2,5 +2,5 @@
 
 - name: Remove unix group {{ unix_group.key }}
   group:
-    name: "{{ unix_group.value.name }}"
+    name: "{{ unix_group.key }}"
     state: absent

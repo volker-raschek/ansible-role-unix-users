@@ -1,26 +1,30 @@
 ---
 
-# unix_groups:
-#   kah:
-#     gid: 568
+unix_groups: {}
+#   alice:
+#     gid: 1001
 #     state: present
-#   markus: {}
-#   movies:
+#   bob:
+#     gid: 1001
 #     state: absent
 
-# unix_users:
-#   markus:
-#     name: "Markus Pesch"
-#     ssh_keys:
-#       public:
-#       - markus@markus-pc.pub
-#       - markus@markus-nb.pub
+unix_users: {}
+#   alice:
+#     state: "present"
+#     name: "Alice"
+#     uid: "1000"
+#     ssh:
+#       config:
+#       - Host: "*"
+#         StrictHostKeyChecking: "no"
+#         UserKnownHostFile: /dev/null
+#       authorized_keys:
+#       - alice@alice-pc.pub
+#       private_keys:
+#       - alice@alice-pc.ed25519.key
+#     home: /home/alice
 #     shell: /bin/bash
-#     group: markus
-#     groups:
-#     - movies
-#     - music
-#     - series
+#     group: alice
+#     groups: []
 #     password: ""
-#     email: markus.pesch@cryptic.systems
-#     state: present
+#     email: alice@example.local

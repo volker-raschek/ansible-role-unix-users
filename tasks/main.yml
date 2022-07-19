@@ -1,15 +1,5 @@
 ---
 
-- name: Remove unix groups
-  include_tasks: remove_unix_group.yml
-  with_dict: "{{ unix_groups }}"
-  loop_control:
-    loop_var: unix_group
-  when: unix_groups is defined and
-        unix_groups | length > 0 and
-        unix_group.value.state is defined and
-        unix_group.value.state == 'absent'
-
 - name: Remove unix user
   include_tasks: remove_unix_user.yml
   with_dict: "{{ unix_users }}"
@@ -19,6 +9,16 @@
         unix_users | length > 0 and
         unix_user.value.state is defined and
         unix_user.value.state == 'absent'
+
+- name: Remove unix groups
+  include_tasks: remove_unix_group.yml
+  with_dict: "{{ unix_groups }}"
+  loop_control:
+    loop_var: unix_group
+  when: unix_groups is defined and
+        unix_groups | length > 0 and
+        unix_group.value.state is defined and
+        unix_group.value.state == 'absent'
 
 - name: Create unix groups
   include_tasks: create_unix_group.yml
