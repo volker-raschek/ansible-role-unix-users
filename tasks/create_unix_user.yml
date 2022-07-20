@@ -91,8 +91,10 @@
   when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length >= 0
 
 - name: Extract public SSH keys from private keys for user {{ unix_user.key }}
-  command: "ssh-keygen -y -f {{ user_user_home }}/.ssh/{{ item }} > {{ user_user_home }}/.ssh/{{ item }}.pub"
+  shell:
   args:
+    executable: /bin/bash
+    cmd: "ssh-keygen -y -f {{ user_user_home }}/.ssh/{{ item }} > {{ user_user_home }}/.ssh/{{ item }}.pub"
     creates: "{{ user_user_home }}/.ssh/{{ item }}.pub"
   with_items:
   - "{{ unix_user.value.ssh.private_keys }}"
