@@ -16,8 +16,4 @@ galaxy_info:
     versions:
     - "35"
 
-  galaxy_tags:
-  - unix_users
-  - unix_groups
-
 dependencies: []

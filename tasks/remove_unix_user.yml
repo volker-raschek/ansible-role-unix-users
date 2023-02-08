@@ -4,4 +4,4 @@
   user:
     name: "{{ unix_user.key }}"
     state: absent
-    remove: yes
+    remove: true
