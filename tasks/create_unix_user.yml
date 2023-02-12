@@ -1,11 +1,11 @@
 ---
 
-- name: Define home directory for user {{ unix_user.key }}
+- name: "Define home directory for unix user: {{ unix_user.key }}"
   ansible.builtin.set_fact:
     user_user_home: "{{ unix_user.value.home | default('/home/' + unix_user.key) }}"
 
-- name: Create unix user {{ unix_user.key }} without additional groups and uid
-  user:
+- name: "Create unix user without additional groups and uid: {{ unix_user.key }}"
+  ansible.builtin.user:
     name: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     comment: "{{ unix_user.value.name }}"
@@ -16,8 +16,8 @@
     state: present
   when: "unix_user.value.groups is not defined and unix_user.value.uid is not defined"
 
-- name: Create unix user {{ unix_user.key }} without additional groups and with uid
-  user:
+- name: "Create unix user without additional groups and with uid: {{ unix_user.key }}"
+  ansible.builtin.user:
     name: "{{ unix_user.key }}"
     uid: "{{ unix_user.value.uid }}"
     group: "{{ unix_user.value.group | default('users') }}"
@@ -29,8 +29,8 @@
     state: present
   when: "unix_user.value.groups is not defined and unix_user.value.uid is defined"
 
-- name: Create unix user {{ unix_user.key }} with additional groups and uid
-  user:
+- name: "Create unix user with additional groups and uid: {{ unix_user.key }}"
+  ansible.builtin.user:
     name: "{{ unix_user.key }}"
     uid: "{{ unix_user.value.uid }}"
     group: "{{ unix_user.value.group | default('users') }}"
@@ -43,8 +43,8 @@
     state: present
   when: "unix_user.value.groups is defined and unix_user.value.uid is defined"
 
-- name: Create unix user {{ unix_user.key }} with additional groups and without uid
-  user:
+- name: "Create unix user with additional groups and without uid: {{ unix_user.key }}"
+  ansible.builtin.user:
     name: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     groups: "{{ unix_user.value.groups | join(',') }}"
@@ -56,7 +56,7 @@
     state: present
   when: "unix_user.value.groups is defined and unix_user.value.uid is not defined"
 
-- name: Create .ssh directory for user {{ unix_user.key }}
+- name: "Create .ssh directory for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
     path: "{{ user_user_home }}/.ssh"
     owner: "{{ unix_user.key }}"
@@ -64,7 +64,7 @@
     mode: 0700
     state: directory
 
-- name: Create authorized_keys file for user {{ unix_user.key }}
+- name: "Create authorized_keys file for unix user: {{ unix_user.key }}"
   ansible.builtin.template:
     src: authorized_keys.j2
     dest: "{{ user_user_home }}/.ssh/authorized_keys"
@@ -73,13 +73,13 @@
     mode: 0600
   when: unix_user.value.ssh.authorized_keys is defined and unix_user.value.ssh.authorized_keys | length > 0
 
-- name: Remove authorized_keys file for user {{ unix_user.key }}
+- name: "Remove authorized_keys file for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
     path: "{{ user_user_home }}/.ssh/authorized_keys"
     state: absent
   when: unix_user.value.ssh.authorized_keys is not defined or unix_user.value.ssh.authorized_keys | length <= 0
 
-- name: Create private SSH keys for user {{ unix_user.key }}
+- name: "Create private SSH keys for unix user: {{ unix_user.key }}"
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/ssh/private_keys/{{ item }}"
     dest: "{{ user_user_home }}/.ssh/{{ item }}"
@@ -90,8 +90,8 @@
   - "{{ unix_user.value.ssh.private_keys }}"
   when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length >= 0
 
-- name: Extract public SSH keys from private keys for user {{ unix_user.key }}
-  shell:
+- name: "Extract public SSH keys from private keys for unix user: {{ unix_user.key }}"
+  ansible.builtin.shell:
   args:
     executable: /bin/bash
     cmd: "ssh-keygen -y -f {{ user_user_home }}/.ssh/{{ item }} > {{ user_user_home }}/.ssh/{{ item }}.pub"
@@ -100,7 +100,7 @@
   - "{{ unix_user.value.ssh.private_keys }}"
   when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length >= 0
 
-- name: Correct permissions of public SSH keys for user {{ unix_user.key }}
+- name: "Correct permissions of public SSH keys for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
     path: "{{ user_user_home }}/.ssh/{{ item }}.pub"
     owner: "{{ unix_user.key }}"
@@ -110,7 +110,7 @@
   - "{{ unix_user.value.ssh.private_keys }}"
   when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length >= 0
 
-- name: Create custom SSH client config for user {{ unix_user.key }}
+- name: "Create custom SSH client config for unix user: {{ unix_user.key }}"
   ansible.builtin.template:
     src: config.j2
     dest: "{{ user_user_home }}/.ssh/config"
@@ -119,13 +119,13 @@
     mode: 0644
   when: unix_user.value.ssh.config is defined and unix_user.value.ssh.config | length >= 0
 
-- name: Remove custom SSH client config for user {{ unix_user.key }}
+- name: "Remove custom SSH client config for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
     path: "{{ user_user_home }}/.ssh/config"
     state: absent
   when: unix_user.value.ssh.config is not defined
 
-- name: Create .forward file to forward emails for user {{ unix_user.key }}
+- name: "Create .forward file to forward emails for unix user: {{ unix_user.key }}"
   ansible.builtin.template:
     src: forward.j2
     dest: "{{ user_user_home }}/.forward"
@@ -134,7 +134,7 @@
     mode: 0644
   when: unix_user.value.email is defined
 
-- name: Remove .forward file to forward emails for user {{ unix_user.key }}
+- name: "Remove .forward file to forward emails for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
     path: "{{ user_user_home }}/.forward"
     state: absent

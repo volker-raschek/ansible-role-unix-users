@@ -1,7 +1,7 @@
 ---
 
 - name: Remove unix user {{ unix_user.key }}
-  user:
+  ansible.builtin.user:
     name: "{{ unix_user.key }}"
     state: absent
     remove: true
