@@ -34,6 +34,7 @@
 
 - name: Create unix users
   ansible.builtin.include_tasks: create_unix_user.yml
+  no_log: true
   with_dict: "{{ unix_users }}"
   loop_control:
     loop_var: unix_user
