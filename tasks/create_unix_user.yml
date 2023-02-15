@@ -12,7 +12,7 @@
     create_home: "{{ unix_user.value.create_home | default(true) }}"
     home: "{{ user_user_home }}"
     shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
-    password: "{{ unix_user.value.password | default('') | password_hash('sha512') }}"
+    password: "{{ (unix_user.value.password | password_hash('sha512')) | default('!') }}"
     state: present
   when: unix_user.value.groups is not defined and unix_user.value.uid is not defined
   no_log: true
@@ -26,7 +26,7 @@
     create_home: "{{ unix_user.value.create_home | default(true) }}"
     home: "{{ user_user_home }}"
     shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
-    password: "{{ unix_user.value.password | default('') | password_hash('sha512') }}"
+    password: "{{ (unix_user.value.password | password_hash('sha512')) | default('!') }}"
     state: present
   when: unix_user.value.groups is not defined and unix_user.value.uid is defined
   no_log: true
@@ -41,7 +41,7 @@
     create_home: "{{ unix_user.value.create_home | default(true) }}"
     home: "{{ user_user_home }}"
     shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
-    password: "{{ unix_user.value.password | default('') | password_hash('sha512') }}"
+    password: "{{ (unix_user.value.password | password_hash('sha512')) | default('!') }}"
     state: present
   when: unix_user.value.groups is defined and unix_user.value.uid is defined
   no_log: true
@@ -55,7 +55,7 @@
     create_home: "{{ unix_user.value.create_home | default(true) }}"
     home: "{{ user_user_home }}"
     shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
-    password: "{{ unix_user.value.password | default('') | password_hash('sha512') }}"
+    password: "{{ (unix_user.value.password | password_hash('sha512')) | default('!') }}"
     state: present
   when: unix_user.value.groups is defined and unix_user.value.uid is not defined
   no_log: true
