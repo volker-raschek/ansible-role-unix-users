@@ -61,7 +61,7 @@
     path: "{{ user_user_home }}/.ssh"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
-    mode: 0700
+    mode: "0700"
     state: directory
 
 - name: "Create authorized_keys file for unix user: {{ unix_user.key }}"
@@ -70,7 +70,7 @@
     dest: "{{ user_user_home }}/.ssh/authorized_keys"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
-    mode: 0600
+    mode: "0600"
   when: unix_user.value.ssh.authorized_keys is defined and unix_user.value.ssh.authorized_keys | length > 0
 
 - name: "Remove authorized_keys file for unix user: {{ unix_user.key }}"
@@ -85,7 +85,7 @@
     dest: "{{ user_user_home }}/.ssh/{{ item }}"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
-    mode: 0600
+    mode: "0600"
   with_items:
   - "{{ unix_user.value.ssh.private_keys }}"
   when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length >= 0
@@ -105,7 +105,7 @@
     path: "{{ user_user_home }}/.ssh/{{ item }}.pub"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
-    mode: 0644
+    mode: "0644"
   with_items:
   - "{{ unix_user.value.ssh.private_keys }}"
   when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length >= 0
@@ -116,7 +116,7 @@
     dest: "{{ user_user_home }}/.ssh/config"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
-    mode: 0644
+    mode: "0644"
   when: unix_user.value.ssh.config is defined and unix_user.value.ssh.config | length >= 0
 
 - name: "Remove custom SSH client config for unix user: {{ unix_user.key }}"
@@ -131,7 +131,7 @@
     dest: "{{ user_user_home }}/.forward"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
-    mode: 0644
+    mode: "0644"
   when: unix_user.value.email is defined
 
 - name: "Remove .forward file to forward emails for unix user: {{ unix_user.key }}"
