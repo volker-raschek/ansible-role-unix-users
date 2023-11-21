@@ -23,6 +23,7 @@ unix_users: {}
 #       private_keys:
 #       - alice@alice-pc.ed25519.key
 #     home: /home/alice
+#     btrfs: false
 #     shell: /bin/bash
 #     group: alice
 #     groups: []

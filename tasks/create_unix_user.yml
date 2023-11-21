@@ -4,6 +4,11 @@
   ansible.builtin.set_fact:
     user_user_home: "{{ unix_user.value.home | default('/home/' + unix_user.key) }}"
 
+- name: "Create btrfs volume for unix user: {{ unix_user.key }}"
+  community.general.btrfs_subvolume:
+    name: "{{ user_user_home }}"
+  when: unix_user.value.btrfs
+
 - name: "Create unix user without additional groups and uid: {{ unix_user.key }}"
   ansible.builtin.user:
     name: "{{ unix_user.key }}"
@@ -55,6 +60,23 @@
     password: "{{ unix_user.value.password | password_hash('sha512') if unix_user.value.password is defined and unix_user.value.password | length > 0 else '!' }}"
     state: present
   when: unix_user.value.groups is defined and unix_user.value.uid is not defined
+
+- name: "Adapt permissions and copy skel for unix user: {{ unix_user.key }}"
+  block:
+  - name: "Copy skel dir"
+    ansible.builtin.copy:
+      src: /etc/skel/
+      dest: "{{ user_user_home }}"
+      remote_src: true
+      owner: "{{ unix_user.key }}"
+      group: "{{ unix_user.value.group | default('users') }}"
+  - name: "Change permission unix users home dir: {{ unix_user.key }}"
+    ansible.builtin.file:
+      path: "{{ user_user_home }}"
+      owner: "{{ unix_user.key }}"
+      group: "{{ unix_user.value.group | default('users') }}"
+      state: directory
+  when: unix_user.value.btrfs
 
 - name: "Create .ssh directory for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
