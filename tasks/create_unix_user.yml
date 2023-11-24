@@ -7,7 +7,8 @@
 - name: "Create btrfs volume for unix user: {{ unix_user.key }}"
   community.general.btrfs_subvolume:
     name: "{{ user_user_home }}"
-  when: unix_user.value.btrfs
+  when: unix_user.value.btrfs is defined and
+        unix_user.value.btrfs
 
 - name: "Create unix user without additional groups and uid: {{ unix_user.key }}"
   ansible.builtin.user:
@@ -76,7 +77,8 @@
       owner: "{{ unix_user.key }}"
       group: "{{ unix_user.value.group | default('users') }}"
       state: directory
-  when: unix_user.value.btrfs
+  when: unix_user.value.btrfs is defined and
+        unix_user.value.btrfs
 
 - name: "Create .ssh directory for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
