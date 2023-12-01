@@ -163,3 +163,16 @@
     path: "{{ user_user_home }}/.forward"
     state: absent
   when: unix_user.value.email is not defined
+
+- name: "Create XDG base directories"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ unix_user.key }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    mode: "0755"
+    state: "directory"
+  with_items:
+  - "{{ unix_user.value.xdg.dirs.cache | default(user_user_home + '/.cache') }}"
+  - "{{ unix_user.value.xdg.dirs.config | default(user_user_home + '/.config') }}"
+  - "{{ unix_user.value.xdg.dirs.data | default(user_user_home + '/.local/share') }}"
+  - "{{ unix_user.value.xdg.dirs.state | default(user_user_home + '/.local/state') }}"
