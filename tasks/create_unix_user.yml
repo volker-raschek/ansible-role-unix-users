@@ -5,8 +5,16 @@
     user_user_home: "{{ unix_user.value.home | default('/home/' + unix_user.key) }}"
 
 - name: "Create btrfs volume for unix user: {{ unix_user.key }}"
-  community.general.btrfs_subvolume:
-    name: "{{ user_user_home }}"
+  block:
+  - name: "Create btrfs volume for unix user: {{ unix_user.key }}"
+    community.general.btrfs_subvolume:
+      name: "{{ user_user_home }}"
+  - name: "Adapt home dir permissions"
+    ansible.builtin.file:
+      path: "{{ user_user_home }}"
+      owner: "{{ unix_user.key }}"
+      group: "{{ unix_user.value.group | default('users') }}"
+      state: directory
   when: unix_user.value.btrfs is defined and
         unix_user.value.btrfs
 
