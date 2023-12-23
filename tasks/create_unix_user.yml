@@ -5,6 +5,8 @@
     user_user_home: "{{ unix_user.value.home | default('/home/' + unix_user.key) }}"
 
 - name: "Create btrfs volume for unix user: {{ unix_user.key }}"
+  when: unix_user.value.btrfs is defined and
+        unix_user.value.btrfs
   block:
   - name: "Create btrfs volume for unix user: {{ unix_user.key }}"
     community.general.btrfs_subvolume:
@@ -15,8 +17,7 @@
       owner: "{{ unix_user.key }}"
       group: "{{ unix_user.value.group | default('users') }}"
       state: directory
-  when: unix_user.value.btrfs is defined and
-        unix_user.value.btrfs
+      mode: "0755"
 
 - name: "Create unix user without additional groups and uid: {{ unix_user.key }}"
   ansible.builtin.user:
@@ -71,6 +72,8 @@
   when: unix_user.value.groups is defined and unix_user.value.uid is not defined
 
 - name: "Adapt permissions and copy skel for unix user: {{ unix_user.key }}"
+  when: unix_user.value.btrfs is defined and
+        unix_user.value.btrfs
   block:
   - name: "Copy skel dir"
     ansible.builtin.copy:
@@ -79,14 +82,14 @@
       remote_src: true
       owner: "{{ unix_user.key }}"
       group: "{{ unix_user.value.group | default('users') }}"
+      mode: "0644"
   - name: "Change permission unix users home dir: {{ unix_user.key }}"
     ansible.builtin.file:
       path: "{{ user_user_home }}"
       owner: "{{ unix_user.key }}"
       group: "{{ unix_user.value.group | default('users') }}"
       state: directory
-  when: unix_user.value.btrfs is defined and
-        unix_user.value.btrfs
+      mode: "0755"
 
 - name: "Create .ssh directory for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
