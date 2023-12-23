@@ -75,14 +75,14 @@
   when: unix_user.value.btrfs is defined and
         unix_user.value.btrfs
   block:
-  - name: "Copy skel dir"
-    ansible.builtin.copy:
-      src: /etc/skel/
-      dest: "{{ user_user_home }}"
-      remote_src: true
-      owner: "{{ unix_user.key }}"
-      group: "{{ unix_user.value.group | default('users') }}"
-      mode: "0644"
+  - name: "Copy skel files"
+    ansible.builtin.include_tasks: copy_skel_file.yml
+    loop_control:
+      loop_var: skel_file
+    with_items:
+    - ".bash_logout"
+    - ".bash_profile"
+    - ".bashrc"
   - name: "Change permission unix users home dir: {{ unix_user.key }}"
     ansible.builtin.file:
       path: "{{ user_user_home }}"

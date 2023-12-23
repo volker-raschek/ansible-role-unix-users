@@ -1,0 +1,17 @@
+---
+
+- name: "Exist file {{ skel_file }}"
+  ansible.builtin.stat:
+    path: "{{ user_user_home }}/{{ skel_file }}"
+  register: _skel_file
+
+- name: Copy skel file
+  when: _skel_file.stat is defined and
+        _skel_file.stat.exist is defined and
+        not _skel_file.stat.exist
+  ansible.builtin.copy:
+    src: "/etc/skel/{{ _skel_file }}"
+    dest: "{{ user_user_home }}/{{ skel_file }}"
+    owner: "{{ unix_user.key }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    mode: "0600"
