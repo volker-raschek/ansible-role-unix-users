@@ -123,7 +123,7 @@
     mode: "0600"
   with_items:
   - "{{ unix_user.value.ssh.private_keys }}"
-  when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length >= 0
+  when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length > 0
 
 - name: "Extract public SSH keys from private keys for unix user: {{ unix_user.key }}"
   ansible.builtin.shell:
