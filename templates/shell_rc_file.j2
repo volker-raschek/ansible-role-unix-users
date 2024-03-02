@@ -1,0 +1,23 @@
+#
+# {{ ansible_managed }}
+#
+
+{% if shell_rc_file.functions is defined %}
+{% for function in shell_rc_file.functions %}
+function {{ function.name }} {
+{{ function.body | indent(2, True) }}
+}
+
+{% endfor %}
+{% endif %}
+{% if shell_rc_file.envs is defined %}
+{% for env in shell_rc_file.envs %}
+{{ 'export ' if env.export is defined and env.export }}{{ env.key }}="{{ env.value }}"
+{% endfor %}
+{% endif %}
+
+{% if shell_rc_file.aliases is defined %}
+{% for alias in shell_rc_file.aliases %}
+alias {{ alias.key }}='{{ alias.value }}'
+{% endfor %}
+{% endif %}

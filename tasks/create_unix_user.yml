@@ -187,3 +187,10 @@
   - "{{ unix_user.value.xdg.dirs.config | default(user_user_home + '/.config') }}"
   - "{{ unix_user.value.xdg.dirs.data | default(user_user_home + '/.local/share') }}"
   - "{{ unix_user.value.xdg.dirs.state | default(user_user_home + '/.local/state') }}"
+
+- name: "Create shell rc files"
+  ansible.builtin.include_tasks: create_shell_rc_file.yml
+  with_items:
+  - "{{ unix_user.value.shell_rc_files }}"
+  loop_control:
+    loop_var: shell_rc_file

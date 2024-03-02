@@ -25,6 +25,18 @@ unix_users: {}
 #     home: /home/alice
 #     btrfs: false
 #     shell: /bin/bash
+#     shell_rc_files:
+#     - file: "/home/alice/.bashrc.d"
+#       aliases:
+#       - key: "dcd"
+#         value: "docker-compose down"
+#       envs:
+#       - export: true
+#         key: "PATH"
+#         value: "${XDG_BIN_DIR}:${PATH}"
+#       functions:
+#       - name: "foo"
+#         value: "echo \"bar\""
 #     group: alice
 #     groups: []
 #     password: ""

@@ -1,0 +1,25 @@
+---
+
+- name: "Create shell rc file directory {{ shell_rc_file.file | dirname }}"
+  ansible.builtin.file:
+    path: "{{ shell_rc_file.file | dirname }}"
+    owner: "{{ unix_user.key }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    mode: "0755"
+    state: "directory"
+
+- name: "Create shell rc file {{ shell_rc_file.file }}"
+  ansible.builtin.template:
+    src: shell_rc_file.j2
+    dest: "{{ shell_rc_file.file }}"
+    owner: "{{ unix_user.key }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    mode: "0644"
+
+- name: "Source shell rc file {{ shell_rc_file.file }}"
+  ansible.builtin.lineinfile:
+    path: "{{ user_user_home }}/.bashrc"
+    line: "source \"{{ shell_rc_file.file }}\""
+    owner: "{{ unix_user.key }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    state: "present"
