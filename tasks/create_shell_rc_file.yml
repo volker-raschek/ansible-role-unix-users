@@ -1,25 +1,30 @@
 ---
 
-- name: "Create shell rc file directory {{ shell_rc_file.file | dirname }}"
+- name: "Determine shell rc directory"
+  ansible.builtin.set_fact:
+    # path_join examples: https://docs.ansible.com/ansible/latest/collections/ansible/builtin/path_join_filter.html#examples
+    _shell_rc_file: "{{ (user_user_home, '.bashrc.d', shell_rc_file.file) | path_join }}"
+
+- name: "Create shell rc directory: {{ _shell_rc_file | dirname }}"
   ansible.builtin.file:
-    path: "{{ shell_rc_file.file | dirname }}"
+    path: "{{ _shell_rc_file | dirname }}"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0755"
     state: "directory"
 
-- name: "Create shell rc file {{ shell_rc_file.file }}"
+- name: "Create shell rc file: {{ _shell_rc_file }}"
   ansible.builtin.template:
     src: shell_rc_file.j2
-    dest: "{{ shell_rc_file.file }}"
+    dest: "{{ _shell_rc_file }}"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0644"
 
-- name: "Source shell rc file {{ shell_rc_file.file }}"
+- name: "Source shell rc file: {{ _shell_rc_file }}"
   ansible.builtin.lineinfile:
     path: "{{ user_user_home }}/.bashrc"
-    line: "source \"{{ shell_rc_file.file }}\""
+    line: "source \"{{ _shell_rc_file }}\""
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     state: "present"
