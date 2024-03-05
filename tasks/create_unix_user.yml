@@ -189,6 +189,7 @@
   - "{{ unix_user.value.xdg.dirs.state | default(user_user_home + '/.local/state') }}"
 
 - name: "Create shell rc files"
+  when: unix_user.value.shell_rc_files is defined
   ansible.builtin.include_tasks: create_shell_rc_file.yml
   with_items:
   - "{{ unix_user.value.shell_rc_files }}"
