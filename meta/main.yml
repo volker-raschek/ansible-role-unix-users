@@ -1,9 +1,9 @@
 galaxy_info:
-  role_name: unix_users
-  author: Markus Pesch
-  description: Role to create and configure unix users and groups
-  company: Cryptic Systems
-  license: MIT
+  role_name: "unix-users"
+  author: "Markus Pesch"
+  description: "Role to create and configure unix users and groups"
+  company: "Cryptic Systems"
+  license: "MIT"
   min_ansible_version: "2.9"
   platforms:
   - name: ArchLinux
@@ -15,5 +15,10 @@ galaxy_info:
   - name: Fedora
     versions:
     - "35"
+  galaxy_tags:
+  - system
+  - user
+  - unix
+  - linux
 
 dependencies: []
