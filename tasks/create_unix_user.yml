@@ -133,7 +133,7 @@
     creates: "{{ user_user_home }}/.ssh/{{ item }}.pub"
   with_items:
   - "{{ unix_user.value.ssh.private_keys }}"
-  when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length >= 0
+  when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length > 0
 
 - name: "Correct permissions of public SSH keys for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
