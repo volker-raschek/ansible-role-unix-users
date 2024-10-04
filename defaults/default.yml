@@ -19,7 +19,8 @@ unix_users: {}
 #         StrictHostKeyChecking: "no"
 #         UserKnownHostFile: /dev/null
 #       authorized_keys:
-#       - alice@alice-pc.pub
+#       - filename: alice@alice-pc.pub
+#         # command: "" # optional
 #       private_keys:
 #       - alice@alice-pc.ed25519.key
 #     home: /home/alice

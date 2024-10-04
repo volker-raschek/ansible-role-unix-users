@@ -2,6 +2,10 @@
 #
 # {{ ansible_managed }}
 #
-{% for key in unix_user.value.ssh.authorized_keys %}
-{{ lookup('file', 'ssh/authorized_keys/' + key) }}
+{% for authorized_key in unix_user.value.ssh.authorized_keys %}
+{% if authorized_key.command is defined and authorized_key.command | length > 0 %}
+command="{{ authorized_key.command }}" {{ lookup('file', 'ssh/authorized_keys/' + authorized_key.filename ) }}
+{% else %}
+{{ lookup('file', 'ssh/authorized_keys/' + authorized_key.filename ) }}
+{% endif %}
 {% endfor %}
