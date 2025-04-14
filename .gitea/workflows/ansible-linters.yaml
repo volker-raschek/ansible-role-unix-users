@@ -1,0 +1,21 @@
+name: Ansible Linter
+
+on:
+  pull_request:
+    types: [ "opened", "reopened", "synchronize" ]
+  push:
+    branches: [ '**' ]
+    tags-ignore: [ '**' ]
+
+jobs:
+  ansible-lint:
+    runs-on:
+    - ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run ansible-lint
+      uses: ansible/ansible-lint@v25.2.1
+      with:
+        args: "--config-file .ansible-lint"
+        setup_python: "true"
+        requirements_file: "requirements.yml"

@@ -1,0 +1,17 @@
+#
+# Documentation:
+# https://yamllint.readthedocs.io/en/stable/
+#
+
+rules:
+  brackets:
+    forbid: false
+    min-spaces-inside: 0
+    max-spaces-inside: 2
+    min-spaces-inside-empty: 0
+    max-spaces-inside-empty: 0
+  indentation:
+    spaces: 2
+    indent-sequences: false
+  line-length:
+    max: 360

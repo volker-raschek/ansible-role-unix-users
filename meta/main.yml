@@ -1,5 +1,6 @@
 galaxy_info:
-  role_name: "unix-users"
+  namespace: volker_raschek
+  role_name: "unix_users"
   author: "Markus Pesch"
   description: "Role to create and configure unix users and groups"
   company: "Cryptic Systems"
