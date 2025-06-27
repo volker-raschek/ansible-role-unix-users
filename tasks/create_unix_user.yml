@@ -195,3 +195,12 @@
   - "{{ unix_user.value.shell_rc_files }}"
   loop_control:
     loop_var: shell_rc_file
+
+- name: "Create .netrc file"
+  when: unix_user.value.netrc is defined and unix_user.value.netrc | length > 0
+  ansible.builtin.template:
+    src: netrc.j2
+    dest: "{{ user_user_home }}/.netrc"
+    owner: "{{ unix_user.key }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    mode: "0600"

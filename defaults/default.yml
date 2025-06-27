@@ -25,6 +25,10 @@ unix_users: {}
 #       - alice@alice-pc.ed25519.key
 #     home: /home/alice
 #     btrfs: false
+#     netrc:
+#     - machine_name: hostame.local
+#       login_name: username
+#       password: password
 #     shell: /bin/bash
 #     shell_rc_files:
 #     - file: "/home/alice/.bashrc.d/docker.bashrc" # absolute or relative path to home dir

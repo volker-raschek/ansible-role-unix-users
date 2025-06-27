@@ -1,0 +1,7 @@
+#jinja2: lstrip_blocks: "True", trim_blocks: "True"
+#
+# Ansible Managed
+#
+{% for netrc in nix_user.value.netrc %}
+maschine {{ netrc.maschine }} login {{ netrc.login }} password {{ netrc.password }}
+{% endfor %}
