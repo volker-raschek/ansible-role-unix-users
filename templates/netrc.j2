@@ -2,6 +2,6 @@
 #
 # Ansible Managed
 #
-{% for netrc in nix_user.value.netrc %}
+{% for netrc in unix_user.value.netrc %}
 maschine {{ netrc.maschine }} login {{ netrc.login }} password {{ netrc.password }}
 {% endfor %}
