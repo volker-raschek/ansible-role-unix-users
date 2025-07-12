@@ -8,9 +8,6 @@ manage the `~/.ssh` directory.
 
 ## Examples
 
-> [!NOTE]
-> A complete list of all parameters can be found [below](#parameters).
-
 ### User and group
 
 The following example create the user `toor` and group `toor`. Booth with a specific id.
