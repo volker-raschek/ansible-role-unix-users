@@ -1,5 +1,4 @@
 galaxy_info:
-  namespace: volker_raschek
   role_name: "unix_users"
   author: "Markus Pesch"
   description: "Role to create and configure unix users and groups"
