@@ -9,12 +9,16 @@ galaxy_info:
   - name: ArchLinux
     versions:
     - all
-  - name: Ubuntu
+  - name: EL
     versions:
     - all
   - name: Fedora
     versions:
-    - "35"
+    - all
+  - name: Ubuntu
+    versions:
+    - all
+
   galaxy_tags:
   - system
   - user
