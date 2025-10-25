@@ -76,7 +76,7 @@
         unix_user.value.btrfs
   block:
   - name: "Copy skel files"
-    ansible.builtin.include_tasks: copy_skel_file.yml
+    ansible.builtin.include_tasks: copy_skel_file.yaml
     loop_control:
       loop_var: skel_file
     with_items:
@@ -190,7 +190,7 @@
 
 - name: "Create shell rc files"
   when: unix_user.value.shell_rc_files is defined
-  ansible.builtin.include_tasks: create_shell_rc_file.yml
+  ansible.builtin.include_tasks: create_shell_rc_file.yaml
   with_items:
   - "{{ unix_user.value.shell_rc_files }}"
   loop_control:

@@ -1,7 +1,7 @@
 ---
 
 - name: Remove unix user
-  ansible.builtin.include_tasks: remove_unix_user.yml
+  ansible.builtin.include_tasks: remove_unix_user.yaml
   with_dict: "{{ unix_users }}"
   loop_control:
     loop_var: unix_user
@@ -11,7 +11,7 @@
         unix_user.value.state == 'absent'
 
 - name: Remove unix groups
-  ansible.builtin.include_tasks: remove_unix_group.yml
+  ansible.builtin.include_tasks: remove_unix_group.yaml
   with_dict: "{{ unix_groups }}"
   loop_control:
     loop_var: unix_group
@@ -21,7 +21,7 @@
         unix_group.value.state == 'absent'
 
 - name: Create unix groups
-  ansible.builtin.include_tasks: create_unix_group.yml
+  ansible.builtin.include_tasks: create_unix_group.yaml
   with_dict: "{{ unix_groups }}"
   loop_control:
     loop_var: unix_group
@@ -33,7 +33,7 @@
         )
 
 - name: Create unix users
-  ansible.builtin.include_tasks: create_unix_user.yml
+  ansible.builtin.include_tasks: create_unix_user.yaml
   no_log: true
   with_dict: "{{ unix_users }}"
   loop_control:
