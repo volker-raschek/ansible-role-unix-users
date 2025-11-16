@@ -1,3 +1,3 @@
 {% for netrc in unix_user.value.netrc %}
-machine {{ netrc.maschine }} login {{ netrc.login }} password {{ netrc.password }}
+machine {{ netrc.machine }} login {{ netrc.login }} password {{ netrc.password }}
 {% endfor %}
