@@ -8,9 +8,33 @@
   when: unix_user.value.btrfs is defined and
         unix_user.value.btrfs
   block:
+  - name: "Find btrfs device"
+    ansible.builtin.command:
+      cmd: /bin/bash -c "findmnt -no SOURCE -T {{ user_user_home }} | sed 's/\[.*\]//'"
+    register: _unix_users_btrfs_device
+    failed_when: _unix_users_btrfs_device.rc != 0
+    changed_when: _unix_users_btrfs_device.rc == 0
+
+  - name: "Found btrfs device"
+    ansible.builtin.debug:
+      msg: _unix_users_btrfs_device.stdout
+    when: _unix_users_debug is defined and
+          _unix_users_debug is true
+
+  - name: "Determine filesystem of device"
+    ansible.builtin.set_fact:
+      _unix_users_device_filesystem: "{{ ansible_facts['mounts'] | selectattr('device', 'equalto', _unix_users_btrfs_device.stdout) | map(attribute='fstype') | first }}"
+
+  - name: "Fail if device does not have a btrfs file system"
+    ansible.builtin.fail:
+      msg: "Determined device {{ _unix_users_btrfs_device.stdout }} does not have a btrfs filesystem"
+    when: _unix_users_device_filesystem != 'btrfs'
+
   - name: "Create btrfs volume for unix user: {{ unix_user.key }}"
     community.general.btrfs_subvolume:
+      filesystem_device: "{{ _unix_users_btrfs_device.stdout }}"
       name: "{{ user_user_home }}"
+      state: present
   - name: "Adapt home dir permissions"
     ansible.builtin.file:
       path: "{{ user_user_home }}"
