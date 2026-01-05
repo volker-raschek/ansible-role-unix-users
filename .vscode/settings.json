@@ -1,0 +1,14 @@
+{
+  "ansible.python.interpreterPath": "/bin/python",
+  "files.associations": {
+    "**/.gitea/**/*.yml": "yaml",
+    "**/.gitea/**/*.yaml": "yaml",
+    "docker-compose*.yml": "dockercompose",
+    "*.yml": "ansible",
+    "*.yaml": "ansible",
+    ".yamllint": "yaml",
+    ".yamllint.yml": "yaml",
+    ".yamllint.yaml": "yaml"
+  },
+  "rewrap.wrappingColumn": 120
+}
