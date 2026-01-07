@@ -18,4 +18,4 @@ jobs:
         ANSIBLE_GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
       name: Update Ansible Role in Ansible Galaxy
       run: |
-        ansible-galaxy role import --token=${ANSIBLE_GALAXY_TOKEN} volker-raschek ansible-role-unix-users
+        ansible-galaxy role import --token=${ANSIBLE_GALAXY_TOKEN} volker-raschek ${GITHUB_REPOSITORY#*/}
