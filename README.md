@@ -103,7 +103,7 @@ unix_users:
       authorized_keys:
       - filename: claire@claire-pc.pub
       - command: /usr/local/bin/upload-file.sh
-        environments:
+        envs:
         - key: SSH_KEY_NAME
           value: bob@bob-pc
         filename: bob@bob-pc.pub
