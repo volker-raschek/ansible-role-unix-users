@@ -3,9 +3,26 @@
 # {{ ansible_managed }}
 #
 {% for authorized_key in unix_user.value.ssh.authorized_keys %}
-{% if authorized_key.command is defined and authorized_key.command | length > 0 %}
-command="{{ authorized_key.command }}" {{ lookup('file', 'ssh/authorized_keys/' + authorized_key.filename ) }}
-{% else %}
+  {% set _args = [] %}
+  {% if authorized_key.command is defined and authorized_key.command | length > 0 %}
+    {% set _args = _args + [ "command=\"" + authorized_key.command + "\"" ] %}
+  {% endif %}
+  {% if authorized_key.environments is defined %}
+    {% set ns = namespace(envs=[]) %}
+    {% for environment in authorized_key.environments %}
+      {% if environment.key is defined and environment.key | length > 0 and
+            environment.value is defined and environment.value | length > 0
+      %}
+        {% set ns.envs = ns.envs + [ environment.key + "=" + environment.value ] %}
+      {% endif %}
+    {% endfor %}
+    {% if ns.envs | length > 0 %}
+      {% set _args = _args + [ "environment=\"" + (ns.envs | join(',')) + "\"" ] %}
+    {% endif %}
+  {% endif %}
+  {% if _args | length > 0 %}
+{{ _args | join(',') }} {{ lookup('file', 'ssh/authorized_keys/' + authorized_key.filename ) }}
+  {% else %}
 {{ lookup('file', 'ssh/authorized_keys/' + authorized_key.filename ) }}
-{% endif %}
+  {% endif %}
 {% endfor %}

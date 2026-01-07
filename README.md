@@ -77,7 +77,11 @@ The SSH client directory `~/.ssh` can also be managed via the Ansible role. This
 `~/.ssh/config`, `~/.ssh/authorized_keys` as well as the maintenance of private and public SSH keys.
 
 The following example create two entries in `~/.ssh/authorized_keys`. One normal SSH access for `claire`. If `bob`
-establish a SSH connection the command `/usr/local/bin/upload-file.sh` will be executed and exited.
+establish a SSH connection the command `/usr/local/bin/upload-file.sh` will be executed and exited. Furthermore,
+environment variables can be espcilitly defined, to consume it during execution of the command.
+
+> [!IMPORTANT]
+> To allow consuming environment variables must be set `PermitUserEnvironment yes` in `/etc/ssh/sshd_config`.
 
 The private key `toor@toor-pc.ed25519.key` must be stored in `ssh/private_keys`. The public key will be automatically
 extracted from the private key.
