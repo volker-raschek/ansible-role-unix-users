@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6.0.2
     - name: Run ansible-lint
-      uses: ansible/ansible-lint@v26.1.1
+      uses: ansible/ansible-lint@v26.2.0
       with:
         args: "--config-file .ansible-lint"
         setup_python: "true"
