@@ -40,7 +40,8 @@
     create_home: "{{ unix_user.value.create_home | default(true) }}"
     home: "{{ user_user_home }}"
     shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
-    password: "{{ unix_user.value.password | password_hash('sha512') if unix_user.value.password is defined and unix_user.value.password | length > 0 else '!' }}"
+    # The salt is derived from the user name, a random one would produce a new hash and a change on every run.
+    password: "{{ unix_user.value.password | password_hash('sha512', unix_user.key | hash('sha512') | truncate(16, true, '')) if unix_user.value.password is defined and unix_user.value.password | length > 0 else '!' }}"
     state: present
 
 - name: "Adapt permissions and copy skel for unix user: {{ unix_user.key }}"
