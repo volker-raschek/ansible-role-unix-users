@@ -15,12 +15,6 @@
     failed_when: _unix_users_btrfs_device.rc != 0
     changed_when: _unix_users_btrfs_device.rc == 0
 
-  - name: "Found btrfs device"
-    ansible.builtin.debug:
-      msg: _unix_users_btrfs_device.stdout
-    when: _unix_users_debug is defined and
-          _unix_users_debug is true
-
   - name: "Determine filesystem of device"
     ansible.builtin.set_fact:
       _unix_users_device_filesystem: "{{ ansible_facts['mounts'] | selectattr('device', 'equalto', _unix_users_btrfs_device.stdout) | map(attribute='fstype') | first }}"
@@ -37,57 +31,18 @@
       name: "{{ user_user_home }}"
       state: present
 
-- name: "Create unix user without additional groups and uid: {{ unix_user.key }}"
+- name: "Create unix user: {{ unix_user.key }}"
   ansible.builtin.user:
     name: "{{ unix_user.key }}"
+    uid: "{{ unix_user.value.uid | default(omit) }}"
     group: "{{ unix_user.value.group | default('users') }}"
-    comment: "{{ unix_user.value.name }}"
+    groups: "{{ unix_user.value.groups | default(omit) }}"
+    comment: "{{ unix_user.value.name | default(omit) }}"
     create_home: "{{ unix_user.value.create_home | default(true) }}"
     home: "{{ user_user_home }}"
     shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
     password: "{{ unix_user.value.password | password_hash('sha512') if unix_user.value.password is defined and unix_user.value.password | length > 0 else '!' }}"
     state: present
-  when: unix_user.value.groups is not defined and unix_user.value.uid is not defined
-
-- name: "Create unix user without additional groups and with uid: {{ unix_user.key }}"
-  ansible.builtin.user:
-    name: "{{ unix_user.key }}"
-    uid: "{{ unix_user.value.uid }}"
-    group: "{{ unix_user.value.group | default('users') }}"
-    comment: "{{ unix_user.value.name }}"
-    create_home: "{{ unix_user.value.create_home | default(true) }}"
-    home: "{{ user_user_home }}"
-    shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
-    password: "{{ unix_user.value.password | password_hash('sha512') if unix_user.value.password is defined and unix_user.value.password | length > 0 else '!' }}"
-    state: present
-  when: unix_user.value.groups is not defined and unix_user.value.uid is defined
-
-- name: "Create unix user with additional groups and uid: {{ unix_user.key }}"
-  ansible.builtin.user:
-    name: "{{ unix_user.key }}"
-    uid: "{{ unix_user.value.uid }}"
-    group: "{{ unix_user.value.group | default('users') }}"
-    groups: "{{ unix_user.value.groups | join(',') }}"
-    comment: "{{ unix_user.value.name }}"
-    create_home: "{{ unix_user.value.create_home | default(true) }}"
-    home: "{{ user_user_home }}"
-    shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
-    password: "{{ unix_user.value.password | password_hash('sha512') if unix_user.value.password is defined and unix_user.value.password | length > 0 else '!' }}"
-    state: present
-  when: unix_user.value.groups is defined and unix_user.value.uid is defined
-
-- name: "Create unix user with additional groups and without uid: {{ unix_user.key }}"
-  ansible.builtin.user:
-    name: "{{ unix_user.key }}"
-    group: "{{ unix_user.value.group | default('users') }}"
-    groups: "{{ unix_user.value.groups | join(',') }}"
-    comment: "{{ unix_user.value.name }}"
-    create_home: "{{ unix_user.value.create_home | default(true) }}"
-    home: "{{ user_user_home }}"
-    shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
-    password: "{{ unix_user.value.password | password_hash('sha512') if unix_user.value.password is defined and unix_user.value.password | length > 0 else '!' }}"
-    state: present
-  when: unix_user.value.groups is defined and unix_user.value.uid is not defined
 
 - name: "Adapt permissions and copy skel for unix user: {{ unix_user.key }}"
   when: unix_user.value.btrfs is defined and
@@ -116,6 +71,7 @@
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0700"
     state: directory
+  when: unix_user.value.ssh is defined
 
 - name: "Create authorized_keys file for unix user: {{ unix_user.key }}"
   ansible.builtin.template:
@@ -132,9 +88,10 @@
     state: absent
   when: unix_user.value.ssh.authorized_keys is not defined or unix_user.value.ssh.authorized_keys | length <= 0
 
+# The relative source is resolved against the files directory of the playbook, like the lookup in authorized_keys.j2.
 - name: "Create private SSH keys for unix user: {{ unix_user.key }}"
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/ssh/private_keys/{{ item }}"
+    src: "ssh/private_keys/{{ item }}"
     dest: "{{ user_user_home }}/.ssh/{{ item }}"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
@@ -145,8 +102,6 @@
 
 - name: "Extract public SSH keys from private keys for unix user: {{ unix_user.key }}"
   ansible.builtin.shell:
-  args:
-    executable: /bin/bash
     cmd: "ssh-keygen -y -f {{ user_user_home }}/.ssh/{{ item }} > {{ user_user_home }}/.ssh/{{ item }}.pub"
     creates: "{{ user_user_home }}/.ssh/{{ item }}.pub"
   with_items:
@@ -161,7 +116,7 @@
     mode: "0644"
   with_items:
   - "{{ unix_user.value.ssh.private_keys }}"
-  when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length >= 0
+  when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length > 0
 
 - name: "Create custom SSH client config for unix user: {{ unix_user.key }}"
   ansible.builtin.template:
@@ -170,13 +125,13 @@
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0644"
-  when: unix_user.value.ssh.config is defined and unix_user.value.ssh.config | length >= 0
+  when: unix_user.value.ssh.config is defined and unix_user.value.ssh.config | length > 0
 
 - name: "Remove custom SSH client config for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
     path: "{{ user_user_home }}/.ssh/config"
     state: absent
-  when: unix_user.value.ssh.config is not defined
+  when: unix_user.value.ssh.config is not defined or unix_user.value.ssh.config | length <= 0
 
 - name: "Create .forward file to forward emails for unix user: {{ unix_user.key }}"
   ansible.builtin.template:
