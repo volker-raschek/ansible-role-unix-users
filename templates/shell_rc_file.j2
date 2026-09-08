@@ -5,7 +5,7 @@
 {% if shell_rc_file.functions is defined %}
 {% for function in shell_rc_file.functions %}
 function {{ function.name }} {
-{{ function.body | indent(2, True) }}
+{{ function.value | indent(2, True) }}
 }
 
 {% endfor %}
