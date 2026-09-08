@@ -2,7 +2,7 @@
 
 - name: "Define home directory for unix user: {{ unix_user.key }}"
   ansible.builtin.set_fact:
-    user_user_home: "{{ unix_user.value.home | default('/home/' + unix_user.key) }}"
+    _unix_users_home: "{{ unix_user.value.home | default('/home/' + unix_user.key) }}"
 
 - name: "Create btrfs volume for unix user: {{ unix_user.key }}"
   when: unix_user.value.btrfs is defined and
@@ -10,7 +10,7 @@
   block:
   - name: "Find btrfs device"
     ansible.builtin.command:
-      cmd: /bin/bash -c "findmnt -no SOURCE -T {{ user_user_home }} | sed 's/\[.*\]//'"
+      cmd: /bin/bash -c "findmnt -no SOURCE -T {{ _unix_users_home }} | sed 's/\[.*\]//'"
     register: _unix_users_btrfs_device
     changed_when: false
 
@@ -27,7 +27,7 @@
   - name: "Create btrfs volume for unix user: {{ unix_user.key }}"
     community.general.btrfs_subvolume:
       filesystem_device: "{{ _unix_users_btrfs_device.stdout }}"
-      name: "{{ user_user_home }}"
+      name: "{{ _unix_users_home }}"
       state: present
 
 - name: "Create unix user: {{ unix_user.key }}"
@@ -38,7 +38,7 @@
     groups: "{{ unix_user.value.groups | default(omit) }}"
     comment: "{{ unix_user.value.name | default(omit) }}"
     create_home: "{{ unix_user.value.create_home | default(true) }}"
-    home: "{{ user_user_home }}"
+    home: "{{ _unix_users_home }}"
     shell: "{{ unix_user.value.shell | default('/bin/bash') }}"
     # The salt is derived from the user name, a random one would produce a new hash and a change on every run.
     password: "{{ unix_user.value.password | password_hash('sha512', unix_user.key | hash('sha512') | truncate(16, true, '')) if unix_user.value.password is defined and unix_user.value.password | length > 0 else '!' }}"
@@ -58,7 +58,7 @@
     - ".bashrc"
   - name: "Change permission unix users home dir: {{ unix_user.key }}"
     ansible.builtin.file:
-      path: "{{ user_user_home }}"
+      path: "{{ _unix_users_home }}"
       owner: "{{ unix_user.key }}"
       group: "{{ unix_user.value.group | default('users') }}"
       state: directory
@@ -66,7 +66,7 @@
 
 - name: "Create .ssh directory for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
-    path: "{{ user_user_home }}/.ssh"
+    path: "{{ _unix_users_home }}/.ssh"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0700"
@@ -76,7 +76,7 @@
 - name: "Create authorized_keys file for unix user: {{ unix_user.key }}"
   ansible.builtin.template:
     src: authorized_keys.j2
-    dest: "{{ user_user_home }}/.ssh/authorized_keys"
+    dest: "{{ _unix_users_home }}/.ssh/authorized_keys"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0600"
@@ -84,7 +84,7 @@
 
 - name: "Remove authorized_keys file for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
-    path: "{{ user_user_home }}/.ssh/authorized_keys"
+    path: "{{ _unix_users_home }}/.ssh/authorized_keys"
     state: absent
   when: unix_user.value.ssh.authorized_keys is not defined or unix_user.value.ssh.authorized_keys | length <= 0
 
@@ -92,7 +92,7 @@
 - name: "Create private SSH keys for unix user: {{ unix_user.key }}"
   ansible.builtin.copy:
     src: "ssh/private_keys/{{ item }}"
-    dest: "{{ user_user_home }}/.ssh/{{ item }}"
+    dest: "{{ _unix_users_home }}/.ssh/{{ item }}"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0600"
@@ -102,15 +102,15 @@
 
 - name: "Extract public SSH keys from private keys for unix user: {{ unix_user.key }}"
   ansible.builtin.shell:
-    cmd: "ssh-keygen -y -f {{ user_user_home }}/.ssh/{{ item }} > {{ user_user_home }}/.ssh/{{ item }}.pub"
-    creates: "{{ user_user_home }}/.ssh/{{ item }}.pub"
+    cmd: "ssh-keygen -y -f {{ _unix_users_home }}/.ssh/{{ item }} > {{ _unix_users_home }}/.ssh/{{ item }}.pub"
+    creates: "{{ _unix_users_home }}/.ssh/{{ item }}.pub"
   with_items:
   - "{{ unix_user.value.ssh.private_keys }}"
   when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length > 0
 
 - name: "Correct permissions of public SSH keys for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
-    path: "{{ user_user_home }}/.ssh/{{ item }}.pub"
+    path: "{{ _unix_users_home }}/.ssh/{{ item }}.pub"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0644"
@@ -121,7 +121,7 @@
 - name: "Create custom SSH client config for unix user: {{ unix_user.key }}"
   ansible.builtin.template:
     src: config.j2
-    dest: "{{ user_user_home }}/.ssh/config"
+    dest: "{{ _unix_users_home }}/.ssh/config"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0644"
@@ -129,14 +129,14 @@
 
 - name: "Remove custom SSH client config for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
-    path: "{{ user_user_home }}/.ssh/config"
+    path: "{{ _unix_users_home }}/.ssh/config"
     state: absent
   when: unix_user.value.ssh.config is not defined or unix_user.value.ssh.config | length <= 0
 
 - name: "Create .forward file to forward emails for unix user: {{ unix_user.key }}"
   ansible.builtin.template:
     src: forward.j2
-    dest: "{{ user_user_home }}/.forward"
+    dest: "{{ _unix_users_home }}/.forward"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0644"
@@ -144,7 +144,7 @@
 
 - name: "Remove .forward file to forward emails for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
-    path: "{{ user_user_home }}/.forward"
+    path: "{{ _unix_users_home }}/.forward"
     state: absent
   when: unix_user.value.email is not defined
 
@@ -156,10 +156,10 @@
     mode: "0755"
     state: "directory"
   with_items:
-  - "{{ unix_user.value.xdg.dirs.cache | default(user_user_home + '/.cache') }}"
-  - "{{ unix_user.value.xdg.dirs.config | default(user_user_home + '/.config') }}"
-  - "{{ unix_user.value.xdg.dirs.data | default(user_user_home + '/.local/share') }}"
-  - "{{ unix_user.value.xdg.dirs.state | default(user_user_home + '/.local/state') }}"
+  - "{{ unix_user.value.xdg.dirs.cache | default(_unix_users_home + '/.cache') }}"
+  - "{{ unix_user.value.xdg.dirs.config | default(_unix_users_home + '/.config') }}"
+  - "{{ unix_user.value.xdg.dirs.data | default(_unix_users_home + '/.local/share') }}"
+  - "{{ unix_user.value.xdg.dirs.state | default(_unix_users_home + '/.local/state') }}"
 
 - name: "Create shell rc files"
   when: unix_user.value.shell_rc_files is defined
@@ -173,7 +173,7 @@
   when: unix_user.value.netrc is defined and unix_user.value.netrc | length > 0
   ansible.builtin.template:
     src: netrc.j2
-    dest: "{{ user_user_home }}/.netrc"
+    dest: "{{ _unix_users_home }}/.netrc"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0600"

@@ -9,7 +9,7 @@
 - name: "Copy skel file: {{ skel_file }}"
   ansible.builtin.copy:
     src: "/etc/skel/{{ skel_file }}"
-    dest: "{{ user_user_home }}/{{ skel_file }}"
+    dest: "{{ _unix_users_home }}/{{ skel_file }}"
     remote_src: true
     force: false
     owner: "{{ unix_user.key }}"
