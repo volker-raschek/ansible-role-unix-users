@@ -1,17 +1,18 @@
 ---
 
-- name: "Exist file {{ skel_file }}"
+- name: "Check if the skel file exists: /etc/skel/{{ skel_file }}"
   ansible.builtin.stat:
-    path: "{{ user_user_home }}/{{ skel_file }}"
-  register: _skel_file
+    path: "/etc/skel/{{ skel_file }}"
+  register: _unix_users_skel_file
 
-- name: Copy skel file
-  when: _skel_file.stat is defined and
-        _skel_file.stat.exist is defined and
-        not _skel_file.stat.exist
+# force: false keeps an already customized dotfile in the home directory untouched.
+- name: "Copy skel file: {{ skel_file }}"
   ansible.builtin.copy:
-    src: "/etc/skel/{{ _skel_file }}"
+    src: "/etc/skel/{{ skel_file }}"
     dest: "{{ user_user_home }}/{{ skel_file }}"
+    remote_src: true
+    force: false
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
-    mode: "0600"
+    mode: "0644"
+  when: _unix_users_skel_file.stat.exists
