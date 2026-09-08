@@ -12,8 +12,7 @@
     ansible.builtin.command:
       cmd: /bin/bash -c "findmnt -no SOURCE -T {{ user_user_home }} | sed 's/\[.*\]//'"
     register: _unix_users_btrfs_device
-    failed_when: _unix_users_btrfs_device.rc != 0
-    changed_when: _unix_users_btrfs_device.rc == 0
+    changed_when: false
 
   - name: "Determine filesystem of device"
     ansible.builtin.set_fact:
