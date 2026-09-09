@@ -1,14 +1,8 @@
 ---
 
-- name: "Create unix group with random gid: {{ unix_group.key }}"
+- name: "Create unix group: {{ unix_group.key }}"
   ansible.builtin.group:
     name: "{{ unix_group.key }}"
+    # The boolean form of default also omits an empty gid, which means let the system assign one.
+    gid: "{{ unix_group.value.gid | default(omit, true) }}"
     state: "{{ unix_group.value.state | default('present') }}"
-  when: unix_group.value.gid is not defined or unix_group.value.gid is defined and unix_group.value.gid | length <= 0
-
-- name: "Create unix group with pre-defined gid: {{ unix_group.key }}"
-  ansible.builtin.group:
-    name: "{{ unix_group.key }}"
-    gid: "{{ unix_group.value.gid }}"
-    state: "{{ unix_group.value.state | default('present') }}"
-  when: unix_group.value.gid is defined and unix_group.value.gid | length > 0
