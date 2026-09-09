@@ -6,6 +6,17 @@ The ansible role `volker-raschek.unix-users` create and manage users on Linux ba
 Linux, Fedora and Ubuntu. Furthermore, the role can also be used to create groups, `~/.forward`, `~/.netrc` and to
 manage the `~/.ssh` directory.
 
+## Requirements
+
+The role requires `ansible-core` 2.11 or newer. A home directory can optionally be created as btrfs subvolume, which
+relies on the `btrfs_subvolume` module of the collection `community.general`.
+
+```bash
+ansible-galaxy collection install -r requirements.yml
+```
+
+The role manages users, groups and their home directories, so it has to be executed with `become: true`.
+
 ## Examples
 
 ### User and group

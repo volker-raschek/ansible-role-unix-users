@@ -1,0 +1,6 @@
+---
+
+collections:
+# The btrfs_subvolume module has been added in community.general 6.6.0.
+- name: community.general
+  version: ">=6.6.0"
