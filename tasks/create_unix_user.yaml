@@ -96,6 +96,7 @@
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0600"
+  no_log: true
   with_items:
   - "{{ unix_user.value.ssh.private_keys }}"
   when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length > 0
@@ -177,3 +178,4 @@
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0600"
+  no_log: true
