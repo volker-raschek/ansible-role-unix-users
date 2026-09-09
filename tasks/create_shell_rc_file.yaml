@@ -25,6 +25,8 @@
   ansible.builtin.lineinfile:
     path: "{{ _unix_users_home }}/.bashrc"
     line: "source \"{{ _shell_rc_file }}\""
+    create: true
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
+    mode: "0644"
     state: "present"
