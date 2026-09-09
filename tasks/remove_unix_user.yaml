@@ -1,7 +1,37 @@
 ---
 
-- name: Remove unix user {{ unix_user.key }}
+- name: "Define home directory for unix user: {{ unix_user.key }}"
+  ansible.builtin.set_fact:
+    _unix_users_home: "{{ unix_user.value.home | default('/home/' + unix_user.key) }}"
+
+# userdel cannot remove a btrfs subvolume. Such a home is deleted afterwards via the btrfs_subvolume module.
+- name: "Remove unix user: {{ unix_user.key }}"
   ansible.builtin.user:
     name: "{{ unix_user.key }}"
     state: absent
-    remove: true
+    remove: "{{ not (unix_user.value.btrfs | default(false)) }}"
+
+- name: "Remove btrfs home of unix user: {{ unix_user.key }}"
+  when: unix_user.value.btrfs is defined and
+        unix_user.value.btrfs
+  block:
+  - name: "Stat home directory"
+    ansible.builtin.stat:
+      path: "{{ _unix_users_home }}"
+    register: _unix_users_home_stat
+
+  # findmnt fails on a missing path, so the device is only determined as long as the home directory exists.
+  - name: "Delete btrfs subvolume of an existing home directory"
+    when: _unix_users_home_stat.stat.exists
+    block:
+    - name: "Find btrfs device"
+      ansible.builtin.command:
+        cmd: /bin/bash -c "findmnt -no SOURCE -T {{ _unix_users_home }} | sed 's/\[.*\]//'"
+      register: _unix_users_btrfs_device
+      changed_when: false
+
+    - name: "Delete btrfs subvolume: {{ _unix_users_home }}"
+      community.general.btrfs_subvolume:
+        filesystem_device: "{{ _unix_users_btrfs_device.stdout }}"
+        name: "{{ _unix_users_home }}"
+        state: absent

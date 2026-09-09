@@ -34,6 +34,10 @@ unix_users:
 Optionally, the home directory of a user can also be created as dedicated btrfs subvolume. This make it possible to
 create snapshots of the home directory, for example via `btrbk`.
 
+> [!WARNING]
+> Removing a user with `state: absent` also deletes the btrfs subvolume of the home directory. Snapshots taken from that
+> subvolume are not removed and keep the data available.
+
 ```yaml
 unix_users:
   toor:
