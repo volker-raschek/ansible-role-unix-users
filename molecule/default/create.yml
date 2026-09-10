@@ -1,0 +1,49 @@
+---
+
+- name: Create
+  hosts: localhost
+  gather_facts: false
+  vars:
+    _private_key: "{{ molecule_scenario_directory }}/files/ssh/private_keys/molecule.ed25519.key"
+    _authorized_key: "{{ molecule_scenario_directory }}/files/ssh/authorized_keys/molecule.pub"
+  tasks:
+  - name: Start a container per platform
+    community.docker.docker_container:
+      name: "{{ item.name }}"
+      image: "{{ item.image }}"
+      command: "sleep infinity"
+      state: started
+    loop: "{{ molecule_yml.platforms }}"
+    loop_control:
+      label: "{{ item.name }}"
+
+  - name: Write the instance config
+    ansible.builtin.copy:
+      content: |
+        {% for platform in molecule_yml.platforms %}
+        - instance: {{ platform.name }}
+          connection: community.docker.docker
+        {% endfor %}
+      dest: "{{ molecule_instance_config }}"
+      mode: "0600"
+
+  - name: Create the fixture directories
+    ansible.builtin.file:
+      path: "{{ item | dirname }}"
+      state: directory
+      mode: "0700"
+    loop:
+    - "{{ _private_key }}"
+    - "{{ _authorized_key }}"
+
+  # The key pair is generated instead of committed, private key material does not belong into a repository.
+  - name: Generate the ssh key pair the role is fed with
+    ansible.builtin.command:
+      cmd: "ssh-keygen -t ed25519 -N '' -C molecule -f {{ _private_key }}"
+      creates: "{{ _private_key }}"
+
+  - name: Offer the public key as authorized key fixture
+    ansible.builtin.copy:
+      src: "{{ _private_key }}.pub"
+      dest: "{{ _authorized_key }}"
+      mode: "0644"

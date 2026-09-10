@@ -1,0 +1,143 @@
+---
+
+- name: Verify
+  hosts: all
+  vars:
+    _alice_home: /home/molecule-alice
+    _bob_home: /home/molecule-bob
+    _expected_modes:
+      /home/molecule-alice/.ssh: "0700"
+      /home/molecule-alice/.ssh/authorized_keys: "0600"
+      /home/molecule-alice/.ssh/config: "0644"
+      /home/molecule-alice/.ssh/molecule.ed25519.key: "0600"
+      /home/molecule-alice/.ssh/molecule.ed25519.key.pub: "0644"
+      /home/molecule-alice/.forward: "0644"
+      /home/molecule-alice/.netrc: "0600"
+      /home/molecule-alice/.bashrc.d: "0755"
+      /home/molecule-alice/.bashrc.d/molecule.bashrc: "0644"
+      /home/molecule-alice/.cache: "0755"
+      /home/molecule-alice/.config: "0755"
+      /home/molecule-alice/.local/share: "0755"
+      /home/molecule-alice/.local/state: "0755"
+    # Only files the role writes are listed, .bashrc originates from the lineinfile task.
+    _expected_contents:
+      /home/molecule-alice/.forward: "alice@example.local"
+      /home/molecule-alice/.netrc: "machine hostname.local login alice password secret"
+      /home/molecule-alice/.ssh/config: "  StrictHostKeyChecking no"
+      /home/molecule-alice/.bashrc.d/molecule.bashrc: "alias dcd='docker compose down'"
+      /home/molecule-alice/.bashrc: "source \"/home/molecule-alice/.bashrc.d/molecule.bashrc\""
+  tasks:
+  - name: Stat the files of molecule-alice
+    ansible.builtin.stat:
+      path: "{{ item.key }}"
+    register: _alice_files
+    loop: "{{ _expected_modes | dict2items }}"
+    loop_control:
+      label: "{{ item.key }}"
+
+  - name: Assert that the files of molecule-alice exist with the expected mode and owner
+    ansible.builtin.assert:
+      that:
+      - item.stat.exists
+      - item.stat.mode == item.item.value
+      - item.stat.pw_name == 'molecule-alice'
+      - item.stat.gr_name == 'molecule-alice'
+      fail_msg: >-
+        {{ item.item.key }} has mode {{ item.stat.mode | default('none') }} and owner
+        {{ item.stat.pw_name | default('none') }}:{{ item.stat.gr_name | default('none') }}
+        instead of {{ item.item.value }} and molecule-alice:molecule-alice
+    loop: "{{ _alice_files.results }}"
+    loop_control:
+      label: "{{ item.item.key }}"
+
+  - name: Read the files of molecule-alice
+    ansible.builtin.slurp:
+      src: "{{ item.key }}"
+    register: _alice_contents
+    loop: "{{ _expected_contents | dict2items }}"
+    loop_control:
+      label: "{{ item.key }}"
+
+  - name: Assert that the files of molecule-alice hold the configured values
+    ansible.builtin.assert:
+      that: item.item.value in (item.content | b64decode).splitlines()
+      fail_msg: "{{ item.item.key }} does not contain the line {{ item.item.value }}"
+    loop: "{{ _alice_contents.results }}"
+    loop_control:
+      label: "{{ item.item.key }}"
+
+  - name: Read the authorized_keys and the extracted public key of molecule-alice
+    ansible.builtin.slurp:
+      src: "{{ item }}"
+    register: _alice_keys
+    loop:
+    - "{{ _alice_home }}/.ssh/authorized_keys"
+    - "{{ _alice_home }}/.ssh/molecule.ed25519.key.pub"
+
+  - name: Assert that the authorized key carries its options and matches the extracted public key
+    vars:
+      _authorized_key: "{{ (_alice_keys.results[0].content | b64decode).splitlines() | select('search', 'ssh-ed25519') | first }}"
+      _public_key: "{{ _alice_keys.results[1].content | b64decode | trim }}"
+    ansible.builtin.assert:
+      that:
+      - _authorized_key.startswith('command="/usr/bin/true",environment="EDITOR=vi" ')
+      - _public_key.startswith('ssh-ed25519 ')
+      - _public_key.split()[1] == _authorized_key.split()[2]
+      fail_msg: "the authorized key of molecule-alice does not match the key extracted from its private key"
+
+  - name: Read the user and group database
+    ansible.builtin.getent:
+      database: "{{ item }}"
+    loop:
+    - passwd
+    - group
+    - shadow
+
+  - name: Assert that molecule-alice was created as declared
+    vars:
+      _entry: "{{ ansible_facts['getent_passwd']['molecule-alice'] }}"
+    ansible.builtin.assert:
+      that:
+      - _entry[1] == '4242'
+      - _entry[2] == '4242'
+      - _entry[3] == 'Alice'
+      - _entry[4] == _alice_home
+      - _entry[5] == '/bin/bash'
+      fail_msg: "molecule-alice was created as {{ _entry }}"
+
+  - name: Assert that the integer gid of the group molecule-alice was applied
+    ansible.builtin.assert:
+      that: ansible_facts['getent_group']['molecule-alice'][1] == '4242'
+      fail_msg: "the group molecule-alice has gid {{ ansible_facts['getent_group']['molecule-alice'][1] }}"
+
+  # A random salt would produce a new hash on every run, which the idempotence step would report as a change.
+  - name: Assert that the password hash is derived from a deterministic salt
+    vars:
+      _expected_hash: "{{ 'alice' | password_hash('sha512', 'molecule-alice' | hash('sha512') | truncate(16, true, '')) }}"
+    ansible.builtin.assert:
+      that: ansible_facts['getent_shadow']['molecule-alice'][0] == _expected_hash
+      fail_msg: "the password hash of molecule-alice is not reproducible and therefore changes on every run"
+
+  - name: Assert that molecule-dave and the group molecule-obsolete were removed
+    ansible.builtin.assert:
+      that:
+      - "'molecule-dave' not in ansible_facts['getent_passwd']"
+      - "'molecule-obsolete' not in ansible_facts['getent_group']"
+      fail_msg: "the removal of molecule-dave or of the group molecule-obsolete did not happen"
+
+  - name: Stat the home of molecule-bob and the files he did not ask for
+    ansible.builtin.stat:
+      path: "{{ item }}"
+    register: _bob_files
+    loop:
+    - "{{ _bob_home }}"
+    - "{{ _bob_home }}/.ssh"
+    - "{{ _bob_home }}/.forward"
+    - "{{ _bob_home }}/.netrc"
+
+  - name: Assert that molecule-bob got a home but none of the optional files
+    ansible.builtin.assert:
+      that:
+      - _bob_files.results[0].stat.exists
+      - not _bob_files.results[1:] | map(attribute='stat.exists') | select | list
+      fail_msg: "molecule-bob has files that were never declared for him"

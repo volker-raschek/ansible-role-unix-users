@@ -1,0 +1,37 @@
+---
+
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  vars:
+    # The base images ship neither a python interpreter for ansible nor ssh-keygen, which the role shells out to.
+    _bootstrap: |
+      set -eu
+      if command -v pacman > /dev/null; then
+        pacman --sync --refresh --noconfirm openssh python shadow
+      elif command -v apt-get > /dev/null; then
+        apt-get update
+        apt-get install --yes openssh-client passwd python3
+      else
+        dnf install --assumeyes openssh-clients python3 shadow-utils
+      fi
+  tasks:
+  # The raw command is wrapped explicitly, because the bootstrap relies on shell builtins.
+  - name: Bootstrap the python interpreter and the tools required by the role
+    ansible.builtin.raw: "/bin/sh -c {{ _bootstrap | quote }}"
+    changed_when: true
+
+# The removal paths of the role can only be observed on objects that exist before the role runs.
+- name: Seed the objects the converge removes again
+  hosts: all
+  tasks:
+  - name: Create the group that the converge removes
+    ansible.builtin.group:
+      name: molecule-obsolete
+      state: present
+
+  - name: Create the user that the converge removes
+    ansible.builtin.user:
+      name: molecule-dave
+      group: users
+      state: present

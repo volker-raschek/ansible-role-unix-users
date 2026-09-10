@@ -1,0 +1,25 @@
+---
+
+- name: Destroy
+  hosts: localhost
+  gather_facts: false
+  tasks:
+  - name: Remove the container of every platform
+    community.docker.docker_container:
+      name: "{{ item.name }}"
+      state: absent
+    loop: "{{ molecule_yml.platforms }}"
+    loop_control:
+      label: "{{ item.name }}"
+
+  # The generated key pair is not kept around, a stale private key in the working tree is asking for trouble.
+  - name: Remove the ssh fixtures
+    ansible.builtin.file:
+      path: "{{ molecule_scenario_directory }}/files/ssh"
+      state: absent
+
+  - name: Empty the instance config
+    ansible.builtin.copy:
+      content: "[]"
+      dest: "{{ molecule_instance_config }}"
+      mode: "0600"

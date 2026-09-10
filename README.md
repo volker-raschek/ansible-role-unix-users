@@ -17,6 +17,46 @@ ansible-galaxy collection install -r requirements.yml
 
 The role manages users, groups and their home directories, so it has to be executed with `become: true`.
 
+## Tests
+
+The role is tested with [Molecule](https://ansible.readthedocs.io/projects/molecule/). The scenario starts one docker
+container per supported distribution family, applies the role, asserts that a second run reports no change and finally
+verifies the created users and groups, the permissions and the content of the managed files and that a user declared
+as `absent` is gone again. A btrfs home is not covered, because a container has no btrfs filesystem to create a
+subvolume on.
+
+The ssh key pair the scenario feeds into the role is generated during `molecule create` and removed again during
+`molecule destroy`, so no private key is kept in the repository.
+
+Molecule ships only its `default` driver, therefore `docker` is required besides molecule itself. The collections are
+declared in `molecule/default/collections.yml` and installed by molecule.
+
+```bash
+pip install molecule docker
+```
+
+The complete sequence creates the containers, tests them and removes them afterwards.
+
+```bash
+molecule test
+```
+
+While working on the role the containers are better kept alive.
+
+```bash
+# create the containers and apply the role
+molecule converge
+
+# run the assertions of molecule/default/verify.yml against the running containers
+molecule verify
+
+# open a shell in one of the containers
+molecule login --host unix-users-debian
+
+# remove the containers
+molecule destroy
+```
+
 ## Examples
 
 ### User and group

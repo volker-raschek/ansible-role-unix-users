@@ -1,1 +1,2 @@
 .ansible
+molecule/default/files/ssh

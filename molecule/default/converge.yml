@@ -1,0 +1,64 @@
+---
+
+# A btrfs home is not covered, a container has no btrfs filesystem to create a subvolume on.
+- name: Converge
+  hosts: all
+  vars:
+    unix_groups:
+      molecule-alice:
+        # An unquoted gid is an integer, the role has to cope with that.
+        gid: 4242
+        state: present
+      molecule-bob:
+        state: present
+      molecule-obsolete:
+        state: absent
+    unix_users:
+      molecule-alice:
+        state: present
+        name: Alice
+        uid: 4242
+        group: molecule-alice
+        home: /home/molecule-alice
+        shell: /bin/bash
+        password: alice
+        email: alice@example.local
+        ssh:
+          config:
+          - Host: "*"
+            StrictHostKeyChecking: "no"
+          authorized_keys:
+          - filename: molecule.pub
+            command: "/usr/bin/true"
+            envs:
+            - key: EDITOR
+              value: vi
+          private_keys:
+          - molecule.ed25519.key
+        netrc:
+        - machine: hostname.local
+          login: alice
+          password: secret
+        shell_rc_files:
+        - file: molecule.bashrc
+          aliases:
+          - key: dcd
+            value: docker compose down
+          envs:
+          - export: true
+            key: PATH
+            value: "${HOME}/bin:${PATH}"
+          functions:
+          - name: foo
+            value: "echo \"bar\""
+      # Bob declares nothing optional, so none of the optional files may show up in his home.
+      molecule-bob:
+        state: present
+        group: molecule-bob
+      molecule-dave:
+        state: absent
+  tasks:
+  # The role is included by the name of its directory, which molecule put on the roles path.
+  - name: Include the role unix-users
+    ansible.builtin.include_role:
+      name: unix-users

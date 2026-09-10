@@ -1,0 +1,24 @@
+---
+
+driver:
+  name: default
+  options:
+    managed: true
+    login_cmd_template: "docker exec --interactive --tty {instance} bash"
+
+platforms:
+- name: unix-users-archlinux
+  image: docker.io/library/archlinux:base
+- name: unix-users-debian
+  image: docker.io/library/debian:13
+- name: unix-users-fedora
+  image: registry.fedoraproject.org/fedora:43
+
+provisioner:
+  name: ansible
+  # The role under test is the project directory itself, so its parent has to be on the roles path.
+  env:
+    ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/.."
+  config_options:
+    defaults:
+      interpreter_python: auto_silent

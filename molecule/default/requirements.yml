@@ -1,0 +1,4 @@
+---
+
+# The role has no role dependencies, but molecule warns about the missing file.
+roles: []
