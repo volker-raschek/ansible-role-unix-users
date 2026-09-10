@@ -1,0 +1,29 @@
+name: Molecule
+
+on:
+  pull_request:
+    types: [ "opened", "reopened", "synchronize" ]
+  push:
+    branches: [ '**' ]
+    tags-ignore: [ '**' ]
+
+permissions:
+  contents: read
+
+jobs:
+  molecule:
+    name: Molecule
+    runs-on: ubuntu-latest-amd64
+    steps:
+    # The scenario includes the role by its directory name, whose parent is used as roles path.
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      with:
+        path: unix-users
+    - name: Install molecule
+      run: |
+        apt update --yes
+        apt install --yes python3-pip
+        pip3 install --break-system-packages molecule docker
+    - name: Run molecule
+      run: molecule test
+      working-directory: unix-users
