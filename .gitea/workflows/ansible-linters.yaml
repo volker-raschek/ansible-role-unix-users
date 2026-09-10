@@ -17,5 +17,6 @@ jobs:
       uses: ansible/ansible-lint@665d9e07a1943254d2910faffc106adaf7ea7294 # v26.8.0
       with:
         args: "--config-file .ansible-lint"
-        requirements_file: "requirements.yml"
+        # The molecule scenario is linted as well, so its collections are required beside the ones of the role.
+        requirements_file: "molecule/default/collections.yml"
         setup_python: "true"
