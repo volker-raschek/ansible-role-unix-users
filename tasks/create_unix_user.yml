@@ -23,10 +23,17 @@
       msg: "Determined device {{ _unix_users_btrfs_device.stdout }} does not have a btrfs filesystem"
     when: _unix_users_device_filesystem != 'btrfs'
 
+  # Select by UUID, device matching fails for symlinked devices like /dev/mapper/* (community.general#11331).
+  - name: "Find btrfs filesystem UUID"
+    ansible.builtin.command:
+      cmd: "findmnt -no UUID -T {{ _unix_users_home }}"
+    register: _unix_users_btrfs_uuid
+    changed_when: false
+
   # The subvolume stays root owned until the user exists. It is chowned further below, after the user was created.
   - name: "Create btrfs volume for unix user: {{ unix_user.key }}"
     community.general.btrfs_subvolume:
-      filesystem_device: "{{ _unix_users_btrfs_device.stdout }}"
+      filesystem_uuid: "{{ _unix_users_btrfs_uuid.stdout }}"
       name: "{{ _unix_users_home }}"
       state: present
 
