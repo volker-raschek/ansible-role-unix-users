@@ -95,17 +95,6 @@
     state: absent
   when: unix_user.value.ssh.authorized_keys is not defined or unix_user.value.ssh.authorized_keys | length <= 0
 
-- name: "Create public SSH keys for unix user: {{ unix_user.key }}"
-  ansible.builtin.copy:
-    content: "{{ item.content }}"
-    dest: "{{ _unix_users_home }}/.ssh/{{ item.filename }}"
-    owner: "{{ unix_user.key }}"
-    group: "{{ unix_user.value.group | default('users') }}"
-    mode: "0644"
-  loop: "{{ unix_user.value.ssh.authorized_keys | default([]) }}"
-  loop_control:
-    label: "{{ item.filename }}"
-
 - name: "Create private SSH keys for unix user: {{ unix_user.key }}"
   ansible.builtin.copy:
     content: "{{ item.content }}"

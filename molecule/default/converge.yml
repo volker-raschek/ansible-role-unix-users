@@ -28,14 +28,12 @@
           - Host: "*"
             StrictHostKeyChecking: "no"
           authorized_keys:
-          - filename: alice.pub
-            content: "{{ lookup('ansible.builtin.file', molecule_scenario_directory + '/files/ssh/authorized_keys/molecule.pub', rstrip=false) }}"
+          - content: "{{ lookup('ansible.builtin.file', molecule_scenario_directory + '/files/ssh/authorized_keys/molecule.pub', rstrip=false) }}"
             command: "/usr/bin/true"
             envs:
             - key: EDITOR
               value: vi
-          - filename: alice-login.pub
-            content: "{{ lookup('ansible.builtin.file', molecule_scenario_directory + '/files/ssh/authorized_keys/molecule.pub', rstrip=false) }}"
+          - content: "{{ lookup('ansible.builtin.file', molecule_scenario_directory + '/files/ssh/authorized_keys/molecule.pub', rstrip=false) }}"
           private_keys:
           - filename: alice.ed25519.key
             content: "{{ lookup('ansible.builtin.file', molecule_scenario_directory + '/files/ssh/private_keys/molecule.ed25519.key', rstrip=false) }}"
