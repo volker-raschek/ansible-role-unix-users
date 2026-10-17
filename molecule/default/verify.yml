@@ -9,8 +9,10 @@
       /home/molecule-alice/.ssh: "0700"
       /home/molecule-alice/.ssh/authorized_keys: "0600"
       /home/molecule-alice/.ssh/config: "0644"
-      /home/molecule-alice/.ssh/molecule.ed25519.key: "0600"
-      /home/molecule-alice/.ssh/molecule.ed25519.key.pub: "0644"
+      /home/molecule-alice/.ssh/alice.ed25519.key: "0600"
+      /home/molecule-alice/.ssh/alice.ed25519.key.pub: "0644"
+      /home/molecule-alice/.ssh/alice.pub: "0644"
+      /home/molecule-alice/.ssh/alice-login.pub: "0644"
       /home/molecule-alice/.forward: "0644"
       /home/molecule-alice/.netrc: "0600"
       /home/molecule-alice/.bashrc.d: "0755"
@@ -72,7 +74,7 @@
     register: _alice_keys
     loop:
     - "{{ _alice_home }}/.ssh/authorized_keys"
-    - "{{ _alice_home }}/.ssh/molecule.ed25519.key.pub"
+    - "{{ _alice_home }}/.ssh/alice.ed25519.key.pub"
 
   - name: Assert that the authorized key carries its options and matches the extracted public key
     vars:
@@ -83,7 +85,30 @@
       - _authorized_key.startswith('command="/usr/bin/true",environment="EDITOR=vi" ')
       - _public_key.startswith('ssh-ed25519 ')
       - _public_key.split()[1] == _authorized_key.split()[2]
+      - (_alice_keys.results[0].content | b64decode).splitlines() | select('match', '^ssh-ed25519 ') | list | length == 1
       fail_msg: "the authorized key of molecule-alice does not match the key extracted from its private key"
+
+  - name: Read the configured private and public SSH key files
+    ansible.builtin.slurp:
+      src: "{{ _alice_home }}/.ssh/{{ item }}"
+    loop:
+    - alice.ed25519.key
+    - alice.pub
+    - alice-login.pub
+    no_log: true
+    register: _alice_key_contents
+
+  - name: Assert that SSH key files contain the exact configured content
+    vars:
+      _private_key_content: "{{ lookup('ansible.builtin.file', molecule_scenario_directory + '/files/ssh/private_keys/molecule.ed25519.key', rstrip=false) }}"
+      _public_key_content: "{{ lookup('ansible.builtin.file', molecule_scenario_directory + '/files/ssh/authorized_keys/molecule.pub', rstrip=false) }}"
+    ansible.builtin.assert:
+      that:
+      - (_alice_key_contents.results[0].content | b64decode) == _private_key_content
+      - (_alice_key_contents.results[1].content | b64decode) == _public_key_content
+      - (_alice_key_contents.results[2].content | b64decode) == _public_key_content
+      - _public_key_content | trim in (_alice_keys.results[0].content | b64decode).splitlines()
+    no_log: true
 
   - name: Read the user and group database
     ansible.builtin.getent:

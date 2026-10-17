@@ -21,8 +21,8 @@
     {% endif %}
   {% endif %}
   {% if _args | length > 0 %}
-{{ _args | join(',') }} {{ lookup('file', 'ssh/authorized_keys/' + authorized_key.filename ) }}
+{{ _args | join(',') }} {{ authorized_key.content | trim }}
   {% else %}
-{{ lookup('file', 'ssh/authorized_keys/' + authorized_key.filename ) }}
+{{ authorized_key.content | trim }}
   {% endif %}
 {% endfor %}

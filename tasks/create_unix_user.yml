@@ -95,11 +95,21 @@
     state: absent
   when: unix_user.value.ssh.authorized_keys is not defined or unix_user.value.ssh.authorized_keys | length <= 0
 
-# The relative source is resolved against the files directory of the playbook, like the lookup in authorized_keys.j2.
+- name: "Create public SSH keys for unix user: {{ unix_user.key }}"
+  ansible.builtin.copy:
+    content: "{{ item.content }}"
+    dest: "{{ _unix_users_home }}/.ssh/{{ item.filename }}"
+    owner: "{{ unix_user.key }}"
+    group: "{{ unix_user.value.group | default('users') }}"
+    mode: "0644"
+  loop: "{{ unix_user.value.ssh.authorized_keys | default([]) }}"
+  loop_control:
+    label: "{{ item.filename }}"
+
 - name: "Create private SSH keys for unix user: {{ unix_user.key }}"
   ansible.builtin.copy:
-    src: "ssh/private_keys/{{ item }}"
-    dest: "{{ _unix_users_home }}/.ssh/{{ item }}"
+    content: "{{ item.content }}"
+    dest: "{{ _unix_users_home }}/.ssh/{{ item.filename }}"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0600"
@@ -110,18 +120,22 @@
 
 - name: "Extract public SSH keys from private keys for unix user: {{ unix_user.key }}"
   ansible.builtin.shell:
-    cmd: "ssh-keygen -y -f {{ _unix_users_home }}/.ssh/{{ item }} > {{ _unix_users_home }}/.ssh/{{ item }}.pub"
-    creates: "{{ _unix_users_home }}/.ssh/{{ item }}.pub"
+    cmd: "ssh-keygen -y -f {{ (_unix_users_home + '/.ssh/' + item.filename) | quote }} > {{ (_unix_users_home + '/.ssh/' + item.filename + '.pub') | quote }}"
+    creates: "{{ _unix_users_home }}/.ssh/{{ item.filename }}.pub"
+  loop_control:
+    label: "{{ item.filename }}"
   with_items:
   - "{{ unix_user.value.ssh.private_keys }}"
   when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length > 0
 
 - name: "Correct permissions of public SSH keys for unix user: {{ unix_user.key }}"
   ansible.builtin.file:
-    path: "{{ _unix_users_home }}/.ssh/{{ item }}.pub"
+    path: "{{ _unix_users_home }}/.ssh/{{ item.filename }}.pub"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0644"
+  loop_control:
+    label: "{{ item.filename }}"
   with_items:
   - "{{ unix_user.value.ssh.private_keys }}"
   when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length > 0

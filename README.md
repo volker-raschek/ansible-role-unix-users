@@ -138,10 +138,11 @@ environment variables can be espcilitly defined, to consume it during execution 
 > [!IMPORTANT]
 > To allow consuming environment variables must be set `PermitUserEnvironment yes` in `/etc/ssh/sshd_config`.
 
-The private key `toor@toor-pc.ed25519.key` must be stored in `ssh/private_keys`. The public key will be automatically
-extracted from the private key.
+Private and public keys are configured directly using `filename` and `content`. The role writes each key to
+`~/.ssh/<filename>`. Store private key content encrypted with Ansible Vault.
 
-The public keys `claire@claire-pc.pub` as well as `bob@bob-pc.pub` must be stored in `ssh/authorized_keys`.
+Entries in `authorized_keys` are also added to `~/.ssh/authorized_keys`, including their optional command and environment
+settings. Public keys are still automatically extracted from private keys into `~/.ssh/<filename>.pub`.
 
 ```yaml
 unix_users:
@@ -157,13 +158,19 @@ unix_users:
         UserKnownHostFile: /dev/null
       authorized_keys:
       - filename: claire@claire-pc.pub
+        content: ssh-ed25519 AAAAC3NzaC... claire
       - command: /usr/local/bin/upload-file.sh
         envs:
         - key: SSH_KEY_NAME
           value: bob@bob-pc
         filename: bob@bob-pc.pub
+        content: ssh-ed25519 AAAAC3NzaC... bob
       private_keys:
-      - toor@toor-pc.ed25519.key
+      - filename: toor@toor-pc.ed25519.key
+        content: |
+          -----BEGIN OPENSSH PRIVATE KEY-----
+          ...
+          -----END OPENSSH PRIVATE KEY-----
     shell: /bin/bash
     password: toor
     group: toor

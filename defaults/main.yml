@@ -8,21 +8,26 @@ unix_groups: {}
 #     gid: 1001
 #     state: absent
 
-unix_users: {}
-#   alice:
-#     state: "present"
-#     name: "Alice"
-#     uid: "1000"
-#     ssh:
-#       config:
-#       - Host: "*"
-#         StrictHostKeyChecking: "no"
-#         UserKnownHostFile: /dev/null
-#       authorized_keys:
-#       - filename: alice@alice-pc.pub
-#         # command: "" # optional
-#       private_keys:
-#       - alice@alice-pc.ed25519.key
+unix_users:
+  alice:
+    state: "present"
+    name: "Alice"
+    uid: "1000"
+    ssh:
+      config:
+      - Host: "*"
+        StrictHostKeyChecking: "no"
+        UserKnownHostFile: /dev/null
+      authorized_keys:
+      - filename: alice@alice-pc.pub
+        content: ssh-ed25519 AAAAC3NzaC... alice
+        # command: "" # optional
+      private_keys:
+      - filename: alice@alice-pc.ed25519.key
+        content: |
+          -----BEGIN OPENSSH PRIVATE KEY-----
+          ...
+          -----END OPENSSH PRIVATE KEY-----
 #     home: /home/alice
 #     btrfs: false
 #     netrc:
