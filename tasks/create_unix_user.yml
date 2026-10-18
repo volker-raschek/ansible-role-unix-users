@@ -108,25 +108,26 @@
   when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length > 0
 
 - name: "Extract public SSH keys from private keys for unix user: {{ unix_user.key }}"
-  ansible.builtin.shell:
-    cmd: "ssh-keygen -y -f {{ (_unix_users_home + '/.ssh/' + item.filename) | quote }} > {{ (_unix_users_home + '/.ssh/' + item.filename + '.pub') | quote }}"
-    creates: "{{ _unix_users_home }}/.ssh/{{ item.filename }}.pub"
+  ansible.builtin.command:
+    argv: [ "ssh-keygen", "-y", "-f", "{{ _unix_users_home }}/.ssh/{{ item.filename }}" ]
+  changed_when: false
+  register: _unix_users_ssh_pub_key_extraction
   loop_control:
     label: "{{ item.filename }}"
   with_items:
   - "{{ unix_user.value.ssh.private_keys }}"
   when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length > 0
 
-- name: "Correct permissions of public SSH keys for unix user: {{ unix_user.key }}"
-  ansible.builtin.file:
-    path: "{{ _unix_users_home }}/.ssh/{{ item.filename }}.pub"
+- name: "Write derived public SSH keys for unix user: {{ unix_user.key }}"
+  ansible.builtin.copy:
+    content: "{{ item.stdout }}\n"
+    dest: "{{ _unix_users_home }}/.ssh/{{ item.item.filename }}.pub"
     owner: "{{ unix_user.key }}"
     group: "{{ unix_user.value.group | default('users') }}"
     mode: "0644"
   loop_control:
-    label: "{{ item.filename }}"
-  with_items:
-  - "{{ unix_user.value.ssh.private_keys }}"
+    label: "{{ item.item.filename }}"
+  loop: "{{ _unix_users_ssh_pub_key_extraction.results }}"
   when: unix_user.value.ssh.private_keys is defined and unix_user.value.ssh.private_keys | length > 0
 
 - name: "Create custom SSH client config for unix user: {{ unix_user.key }}"
