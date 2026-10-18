@@ -142,3 +142,57 @@
       - _bob_files.results[0].stat.exists
       - not _bob_files.results[1:] | map(attribute='stat.exists') | select | list
       fail_msg: "molecule-bob has files that were never declared for him"
+
+- name: Verify SSH key rotation
+  hosts: all
+  vars:
+    _replacement_key: "{{ molecule_scenario_directory }}/files/ssh/private_keys/molecule.ed25519.key.replacement"
+    unix_groups: {}
+    unix_users:
+      molecule-alice:
+        group: molecule-alice
+        password: alice
+        ssh:
+          private_keys:
+          - filename: alice.ed25519.key
+            content: "{{ lookup('ansible.builtin.file', _replacement_key, rstrip=false) }}"
+        state: present
+  tasks:
+  - name: Replace the private key while keeping the existing public key file
+    ansible.builtin.include_role:
+      name: unix-users
+
+  - name: Read the public key after rotation
+    ansible.builtin.slurp:
+      src: /home/molecule-alice/.ssh/alice.ed25519.key.pub
+    register: _rotated_public_key
+
+  - name: Assert the existing public key matches the replacement key and differs from the original
+    vars:
+      _expected_public_key: "{{ lookup('ansible.builtin.file', _replacement_key + '.pub') }}"
+    ansible.builtin.assert:
+      that:
+      - (_rotated_public_key.content | b64decode).split()[1] == _expected_public_key.split()[1]
+      - _rotated_public_key.content != _alice_keys.results[1].content
+
+  - name: Stat the rotated private and public keys
+    ansible.builtin.stat:
+      path: "{{ item.path }}"
+    loop:
+    - path: /home/molecule-alice/.ssh/alice.ed25519.key
+      mode: '0600'
+    - path: /home/molecule-alice/.ssh/alice.ed25519.key.pub
+      mode: '0644'
+    loop_control:
+      label: "{{ item.path }}"
+    register: _rotated_key_files
+
+  - name: Assert rotated keys retain their owner and permissions
+    ansible.builtin.assert:
+      that:
+      - item.stat.pw_name == 'molecule-alice'
+      - item.stat.gr_name == 'molecule-alice'
+      - item.stat.mode == item.item.mode
+    loop: "{{ _rotated_key_files.results }}"
+    loop_control:
+      label: "{{ item.item.path }}"
