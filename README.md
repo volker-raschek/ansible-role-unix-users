@@ -1,6 +1,6 @@
 # volker-raschek.unix-users
 
-![Ansible Role](https://img.shields.io/ansible/role/d/volker-raschek/unix-users)
+![Ansible Role](https://img.shields.io/ansible/role/d/volker-raschek/unix_users)
 
 The ansible role `volker-raschek.unix-users` create and manage users on Linux based distributions. For example for Arch
 Linux, Fedora and Ubuntu. Furthermore, the role can also be used to create groups, `~/.forward`, `~/.netrc` and to
